@@ -1,0 +1,88 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Hospital_Management.Models.DoctorModel
+
+<h2>Add Doctor</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="form-group">
+        @Html.TextBoxFor(x => x.DoctorName, new { @class = "form-control", placeholder = "Doctor Name" })
+        @Html.ValidationMessageFor(x => x.DoctorName, "", new { @class = "text-danger" })
+    </div>
+
+@*     <div class="form-group">
+        @Html.DropDownListFor(
+        m => m.Specialization,
+        Model.SpecializationList,
+        "-- Select Specialization --",
+        new { @class = "form-control" })
+    @Html.ValidationMessageFor(m => m.Specialization)
+</div> *@
+
+    <div class="form-group">
+        @Html.LabelFor(x => x.Specialization)
+        @Html.DropDownListFor(
+        x => x.Specialization,
+        new List<SelectListItem>
+        {
+        new SelectListItem { Text="Cardiologist", Value="Cardiologist" },
+        new SelectListItem { Text="Dermatologist", Value="Dermatologist" },
+        new SelectListItem { Text="Neurologist", Value="Neurologist" },
+        new SelectListItem { Text="Orthopedic", Value="Orthopedic" },
+        new SelectListItem { Text="Other", Value="Other" }
+        },
+        "-- Select Specialization --",
+        new { @class = "form-control", onchange = "toggleOther()" }
+        )
+    @Html.ValidationMessageFor(x => x.Specialization)
+</div>
+
+    <div class="form-group">
+        @Html.TextBoxFor(x => x.WorkPlace, new { @class = "form-control", placeholder = "Workplace" })
+        @Html.ValidationMessageFor(x => x.WorkPlace, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.TextBoxFor(x => x.Experience, new { @class = "form-control", placeholder = "Experience" })
+        @Html.ValidationMessageFor(x => x.Experience, "", new { @class = "text-danger" })
+    </div>
+
+    <br />
+    <input type="submit" value="Save" class="btn btn-success" />
+}
+
+<script>
+    // function toggleOther() {
+    //     var spec = document.getElementById("Specialization").value;
+    //     document.getElementById("otherDiv").style.display =
+    //         spec === "Other" ? "block" : "none";
+    // }
+</script>
+
+
+
+
+
+@* // before validation  *@
+@* 
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+@{
+}
+
+@model DoctorModel
+<h2>Add Doctor</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.TextBoxFor(x => x.DoctorName, new { @class = "form-control", placeholder = "Doctor Name" })
+    @Html.TextBoxFor(x => x.Specialization, new { @class = "form-control", placeholder = "Specialization" })
+    @Html.TextBoxFor(x => x.WorkPlace, new { @class = "form-control", placeholder = "Workplace" })
+    @Html.TextBoxFor(x => x.Experience, new { @class = "form-control", placeholder = "Experience" })
+    <br />
+    <input type="submit" value="Save" class="btn btn-success" />
+} *@
