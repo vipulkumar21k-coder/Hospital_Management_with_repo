@@ -1,199 +1,94 @@
-﻿using Dapper;
-using Hospital_Management.Models;
+﻿using Hospital_Management.Models;
+using Hospital_Management.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Data;
-
 
 namespace Hospital_Management.Controllers
 {
+    /// <summary>
+    /// Handles Doctor related UI requests.
+    /// No database logic here.
+    /// </summary>
     public class DoctorController : Controller
     {
-        private readonly string _con;
+        private readonly IDoctorRepository _doctorRepo;
 
-        public DoctorController(IConfiguration configuration)
+        public DoctorController(IDoctorRepository doctorRepo)
         {
-            _con = configuration.GetConnectionString("dbcon");
+            _doctorRepo = doctorRepo;
         }
 
         public IActionResult Index()
         {
-            using (var db = new SqlConnection(_con))
-            {
-                var doctors = db
-                    .Query<DoctorModel>("sp_Doctor_GetAll",
-                    commandType: CommandType.StoredProcedure
-                    )
-                    .ToList();
-
-                return View(doctors);
-            }
+            var doctors = _doctorRepo.GetAllDoctors();
+            return View(doctors);
         }
 
         public IActionResult Create()
         {
-
-            var model = new DoctorModel
+            return View(new DoctorModel
             {
                 SpecializationList = GetSpecializations()
-            };
-            return View(model);
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(DoctorModel m)
+        public IActionResult Create(DoctorModel model)
         {
             if (!ModelState.IsValid)
             {
-                    m.SpecializationList = GetSpecializations(); // VERY IMPORTANT
-
-                return View(m); // Return form with validation errors
+                model.SpecializationList = GetSpecializations();
+                return View(model);
             }
 
-            //if (m.Specialization == "Other")
-            //{
-            //    if (string.IsNullOrWhiteSpace(m.OtherSpecialization))
-            //    {
-            //        ModelState.AddModelError("OtherSpecialization", "Please enter specialization");
-            //        m.SpecializationList = GetSpecializations();
-            //        return View(m);
-            //    }
-
-            //    m.Specialization = m.OtherSpecialization;
-            //}
-
-            try
-            {
-                using (var db = new SqlConnection(_con))
-                {
-                    var param = new DynamicParameters();
-                    param.Add("@DoctorName", m.DoctorName);
-                    param.Add("@Specialization", m.Specialization);
-                    param.Add("@WorkPlace", m.WorkPlace);
-                    param.Add("@Experience", m.Experience);
-
-                    db.Execute(
-                        "sp_Doctor_Insert",
-                        param,
-                        commandType: CommandType.StoredProcedure
-                    );
-                }
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", ex.Message);
-                m.SpecializationList = GetSpecializations();
-
-                return View(m);
-            }
+            _doctorRepo.AddDoctor(model);
+            return RedirectToAction(nameof(Index));
         }
 
-
-        private List<SelectListItem> GetSpecializations()
+        public IActionResult Edit(int id)
         {
-            return new List<SelectListItem>
-    {
-        new SelectListItem { Text = "Cardiologist", Value = "Cardiologist" },
-        new SelectListItem { Text = "Dermatologist", Value = "Dermatologist" },
-        new SelectListItem { Text = "Neurologist", Value = "Neurologist" },
-        new SelectListItem { Text = "Orthopedic", Value = "Orthopedic" },
-        new SelectListItem { Text = "Pediatrician", Value = "Pediatrician" },
-        new SelectListItem { Text = "Other", Value = "Other" }
+            var doctor = _doctorRepo.GetDoctorById(id);
+            if (doctor == null) return NotFound();
 
-    };
+            doctor.SpecializationList = GetSpecializations();
+            return View(doctor);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(DoctorModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.SpecializationList = GetSpecializations();
+                return View(model);
+            }
+
+            _doctorRepo.UpdateDoctor(model);
+            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Delete(int id)
         {
-            using (var db = new SqlConnection(_con))
-            {
-                db.Execute(
-                    "sp_Doctor_Delete",
-                    new { DoctorId = id },
-                    commandType: CommandType.StoredProcedure
-                );
-            }
-
+            _doctorRepo.DeleteDoctor(id);
             return RedirectToAction(nameof(Index));
         }
 
-
-        public IActionResult Edit(int id)
+        /// <summary>
+        /// Dropdown specialization list.
+        /// </summary>
+        private List<SelectListItem> GetSpecializations()
         {
-            using (var db = new SqlConnection(_con))
+            return new()
             {
-                var doctor = db.QueryFirstOrDefault<DoctorModel>(
-                    "SELECT * FROM Doctors WHERE DoctorId = @id",
-                    new { id }
-                );
-
-                if (doctor == null)
-                {
-                    return NotFound();
-                }
-                doctor.SpecializationList = GetSpecializations();
-
-                return View(doctor);
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(DoctorModel m)
-        {
-
-            if (!ModelState.IsValid)
-            {
-                m.SpecializationList = GetSpecializations();
-                return View(m);
-            }
-
-
-            //if (m.Specialization == "Other")
-            //{
-            //    if (string.IsNullOrWhiteSpace(m.OtherSpecialization))
-            //    {
-            //        ModelState.AddModelError("OtherSpecialization", "Please enter specialization");
-            //        m.SpecializationList = GetSpecializations();
-            //        return View(m);
-            //    }
-
-            //    m.Specialization = m.OtherSpecialization;
-            //}
-
-
-            try
-            {
-                using var db = new SqlConnection(_con);
-
-                var param = new DynamicParameters();
-                param.Add("@DoctorId", m.DoctorId);
-                param.Add("@DoctorName", m.DoctorName);
-                param.Add("@Specialization", m.Specialization);
-                param.Add("@WorkPlace", m.WorkPlace);
-                param.Add("@Experience", m.Experience);
-
-                db.Execute(
-                    "sp_Doctor_Update",
-                    param,
-                    commandType: CommandType.StoredProcedure
-                );
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", ex.Message);
-                m.SpecializationList = GetSpecializations();
-
-                return View(m);
-            }
-
+                new SelectListItem { Text = "Cardiologist", Value = "Cardiologist" },
+                new SelectListItem { Text = "Dermatologist", Value = "Dermatologist" },
+                new SelectListItem { Text = "Neurologist", Value = "Neurologist" },
+                new SelectListItem { Text = "Orthopedic", Value = "Orthopedic" },
+                new SelectListItem { Text = "Pediatrician", Value = "Pediatrician" },
+                new SelectListItem { Text = "Other", Value = "Other" }
+            };
         }
     }
 }
