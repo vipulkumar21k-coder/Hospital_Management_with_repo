@@ -8,7 +8,7 @@ namespace Hospital_Management.Repositories.Implementations
 {
     /// <summary>
     /// Concrete implementation of IDoctorRepository.
-    /// All database & stored procedure logic lives here.
+    ///All database & stored procedure logic lives here.
     /// </summary>
     public class DoctorRepository : IDoctorRepository
     {

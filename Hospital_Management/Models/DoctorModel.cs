@@ -9,7 +9,7 @@ namespace Hospital_Management.Models
 
         [Required(ErrorMessage = "Doctor Name is required")]
         [StringLength(30, ErrorMessage = "Doctor Name cannot exceed 30 characters")]
-        [RegularExpression(@"^[A-Za-z ]+$", ErrorMessage = "Doctor Name must contain only alphabets")]
+        [RegularExpression(@"^[A-Za-z .]+$", ErrorMessage = "Doctor Name must contain only alphabets")]
 
         public string DoctorName { get; set; }
 
