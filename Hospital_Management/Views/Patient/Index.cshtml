@@ -8,6 +8,13 @@
 }
 
 @model IEnumerable<Hospital_Management.Models.PatientModel>
+@if (TempData["DeleteError"] != null)
+{
+    <script>
+        alert("@TempData["DeleteError"]");
+    </script>
+}
+
 
 <h2>Patient List</h2>
 

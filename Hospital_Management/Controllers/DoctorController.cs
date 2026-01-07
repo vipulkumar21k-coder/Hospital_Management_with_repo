@@ -2,12 +2,13 @@
 using Hospital_Management.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 
 namespace Hospital_Management.Controllers
 {
     /// <summary>
     /// Handles Doctor related UI requests.
-    /// No database logic here.
+    /// Database logic is handled by Repository.
     /// </summary>
     public class DoctorController : Controller
     {
@@ -18,12 +19,18 @@ namespace Hospital_Management.Controllers
             _doctorRepo = doctorRepo;
         }
 
+        /// <summary>
+        /// List all doctors
+        /// </summary>
         public IActionResult Index()
         {
             var doctors = _doctorRepo.GetAllDoctors();
             return View(doctors);
         }
 
+        /// <summary>
+        /// Create doctor - GET
+        /// </summary>
         public IActionResult Create()
         {
             return View(new DoctorModel
@@ -32,6 +39,9 @@ namespace Hospital_Management.Controllers
             });
         }
 
+        /// <summary>
+        /// Create doctor - POST
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(DoctorModel model)
@@ -46,15 +56,22 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Edit doctor - GET
+        /// </summary>
         public IActionResult Edit(int id)
         {
             var doctor = _doctorRepo.GetDoctorById(id);
-            if (doctor == null) return NotFound();
+            if (doctor == null)
+                return NotFound();
 
             doctor.SpecializationList = GetSpecializations();
             return View(doctor);
         }
 
+        /// <summary>
+        /// Edit doctor - POST
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(DoctorModel model)
@@ -69,16 +86,28 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Delete doctor
+        /// Shows alert if appointments exist
+        /// </summary>
         public IActionResult Delete(int id)
         {
-            _doctorRepo.DeleteDoctor(id);
+            try
+            {
+                _doctorRepo.DeleteDoctor(id);
+            }
+            catch (SqlException ex)
+            {
+                TempData["DeleteError"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
         /// <summary>
-        /// Dropdown specialization list.
+        /// Dropdown specialization list
         /// </summary>
-        private List<SelectListItem> GetSpecializations()
+        private List<SelectListItem> GetSpecializations() 
         {
             return new()
             {

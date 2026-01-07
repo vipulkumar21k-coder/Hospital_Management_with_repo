@@ -583,5 +583,40 @@ JOIN Patients P ON A.PatientId=P.PatientId
 order by A.AppointmentDate desc
 
 
+----------------------------------------------------------
+
+
+ALTER PROCEDURE sp_Doctor_Delete
+    @DoctorId INT
+AS
+BEGIN
+    -- Check if doctor has appointments
+    IF EXISTS (
+        SELECT 1 FROM Appointments WHERE DoctorId = @DoctorId
+    )
+    BEGIN
+        RAISERROR('Doctor has booked appointments. Cannot delete.', 16, 1)
+        RETURN
+    END
+
+    DELETE FROM Doctors WHERE DoctorId = @DoctorId
+END
+
+ALTER PROCEDURE sp_Patient_Delete
+    @PatientId INT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Appointments WHERE PatientId = @PatientId
+    )
+    BEGIN
+        RAISERROR('Patient has booked appointments. Cannot delete.', 16, 1)
+        RETURN
+    END
+
+    DELETE FROM Patients WHERE PatientId = @PatientId
+END
+
+
 
  */

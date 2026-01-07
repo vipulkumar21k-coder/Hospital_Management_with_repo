@@ -1,12 +1,13 @@
 ﻿using Hospital_Management.Models;
 using Hospital_Management.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace Hospital_Management.Controllers
 {
     /// <summary>
     /// Handles Patient UI requests.
-    /// No database or SQL logic here.
+    /// Database logic is handled by Repository.
     /// </summary>
     public class PatientController : Controller
     {
@@ -18,7 +19,7 @@ namespace Hospital_Management.Controllers
         }
 
         /// <summary>
-        /// List all patients.
+        /// List all patients
         /// </summary>
         public IActionResult Index()
         {
@@ -26,11 +27,17 @@ namespace Hospital_Management.Controllers
             return View(patients);
         }
 
+        /// <summary>
+        /// Create patient - GET
+        /// </summary>
         public IActionResult Create()
         {
             return View();
         }
 
+        /// <summary>
+        /// Create patient - POST
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(PatientModel model)
@@ -42,6 +49,9 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Edit patient - GET
+        /// </summary>
         public IActionResult Edit(int id)
         {
             var patient = _patientRepo.GetPatientById(id);
@@ -51,6 +61,9 @@ namespace Hospital_Management.Controllers
             return View(patient);
         }
 
+        /// <summary>
+        /// Edit patient - POST
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(PatientModel model)
@@ -62,9 +75,21 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Delete patient
+        /// Shows alert if appointment exists
+        /// </summary>
         public IActionResult Delete(int id)
         {
-            _patientRepo.DeletePatient(id);
+            try
+            {
+                _patientRepo.DeletePatient(id);
+            }
+            catch (SqlException ex)
+            {
+                TempData["DeleteError"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }

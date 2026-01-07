@@ -7,6 +7,14 @@
 
 @model IEnumerable<DoctorModel>
 
+@if (TempData["DeleteError"] != null)
+{
+    <script>
+        alert("@TempData["DeleteError"]");
+    </script>
+}
+
+
 <h2>Doctor List</h2>
 
 <p>
