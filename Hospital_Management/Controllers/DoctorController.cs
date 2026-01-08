@@ -19,18 +19,14 @@ namespace Hospital_Management.Controllers
             _doctorRepo = doctorRepo;
         }
 
-        /// <summary>
-        /// List all doctors
-        /// </summary>
+        // ===================== INDEX =====================
         public IActionResult Index()
         {
             var doctors = _doctorRepo.GetAllDoctors();
             return View(doctors);
         }
 
-        /// <summary>
-        /// Create doctor - GET
-        /// </summary>
+        // ===================== CREATE (GET) =====================
         public IActionResult Create()
         {
             return View(new DoctorModel
@@ -39,13 +35,27 @@ namespace Hospital_Management.Controllers
             });
         }
 
-        /// <summary>
-        /// Create doctor - POST
-        /// </summary>
+        // ===================== CREATE (POST) =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(DoctorModel model)
         {
+            // 🔹 OTHER specialization handling
+            if (model.Specialization == "Other")
+            {
+                if (string.IsNullOrWhiteSpace(model.OtherSpecialization))
+                {
+                    ModelState.AddModelError(
+                        nameof(model.OtherSpecialization),
+                        "Please enter specialization"
+                    );
+                }
+                else
+                {
+                    model.Specialization = model.OtherSpecialization.Trim();
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 model.SpecializationList = GetSpecializations();
@@ -56,9 +66,7 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Edit doctor - GET
-        /// </summary>
+        // ===================== EDIT (GET) =====================
         public IActionResult Edit(int id)
         {
             var doctor = _doctorRepo.GetDoctorById(id);
@@ -69,13 +77,27 @@ namespace Hospital_Management.Controllers
             return View(doctor);
         }
 
-        /// <summary>
-        /// Edit doctor - POST
-        /// </summary>
+        // ===================== EDIT (POST) =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(DoctorModel model)
         {
+            // 🔹 OTHER specialization handling
+            if (model.Specialization == "Other")
+            {
+                if (string.IsNullOrWhiteSpace(model.OtherSpecialization))
+                {
+                    ModelState.AddModelError(
+                        nameof(model.OtherSpecialization),
+                        "Please enter specialization"
+                    );
+                }
+                else
+                {
+                    model.Specialization = model.OtherSpecialization.Trim();
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 model.SpecializationList = GetSpecializations();
@@ -86,10 +108,7 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Delete doctor
-        /// Shows alert if appointments exist
-        /// </summary>
+        // ===================== DELETE =====================
         public IActionResult Delete(int id)
         {
             try
@@ -104,10 +123,8 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Dropdown specialization list
-        /// </summary>
-        private List<SelectListItem> GetSpecializations() 
+        // ===================== SPECIALIZATION DROPDOWN =====================
+        private List<SelectListItem> GetSpecializations()
         {
             return new()
             {
