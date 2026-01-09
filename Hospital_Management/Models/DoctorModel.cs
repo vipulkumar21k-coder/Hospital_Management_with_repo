@@ -15,10 +15,11 @@ namespace Hospital_Management.Models
         [Required(ErrorMessage = "Specialization is required")]
         public string Specialization { get; set; }
 
-        // 🔥 NEW FIELD
         public string? OtherSpecialization { get; set; }
 
         [Required(ErrorMessage = "Workplace is required")]
+        [StringLength(30)]
+        [RegularExpression(@"^[A-Za-z .]+$")]
         public string WorkPlace { get; set; }
 
         [Required(ErrorMessage = "Experience is required")]

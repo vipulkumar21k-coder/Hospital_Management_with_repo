@@ -18,26 +18,44 @@ namespace Hospital_Management.Controllers
             _patientRepo = patientRepo;
         }
 
-        /// <summary>
-        /// List all patients
-        /// </summary>
-        public IActionResult Index()
+        // ===================== INDEX =====================
+        public IActionResult Index(string search, int page = 1)
         {
+            int pageSize = 5;
+
             var patients = _patientRepo.GetAllPatients();
-            return View(patients);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                patients = patients
+                    .Where(x =>
+                        x.PatientName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        x.Contact.Contains(search))
+                    .ToList();
+            }
+
+            // 🔢 PAGINATION
+            int totalRecords = patients.Count;
+
+            var pagedPatients = patients
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            ViewBag.Search = search;
+
+            return View(pagedPatients);
         }
 
-        /// <summary>
-        /// Create patient - GET
-        /// </summary>
+        // ===================== CREATE (GET) =====================
         public IActionResult Create()
         {
             return View();
         }
 
-        /// <summary>
-        /// Create patient - POST
-        /// </summary>
+        // ===================== CREATE (POST) =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(PatientModel model)
@@ -49,9 +67,7 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Edit patient - GET
-        /// </summary>
+        // ===================== EDIT (GET) =====================
         public IActionResult Edit(int id)
         {
             var patient = _patientRepo.GetPatientById(id);
@@ -61,9 +77,7 @@ namespace Hospital_Management.Controllers
             return View(patient);
         }
 
-        /// <summary>
-        /// Edit patient - POST
-        /// </summary>
+        // ===================== EDIT (POST) =====================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(PatientModel model)
@@ -75,10 +89,7 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Delete patient
-        /// Shows alert if appointment exists
-        /// </summary>
+        // ===================== DELETE =====================
         public IActionResult Delete(int id)
         {
             try

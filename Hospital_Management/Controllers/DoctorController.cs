@@ -20,10 +20,36 @@ namespace Hospital_Management.Controllers
         }
 
         // ===================== INDEX =====================
-        public IActionResult Index()
+        public IActionResult Index(string search, int page = 1)
         {
+            int pageSize = 5;
+
+            // 🔹 Get all doctors from repository
             var doctors = _doctorRepo.GetAllDoctors();
-            return View(doctors);
+
+            
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                doctors = doctors
+                    .Where(x =>
+                        x.DoctorName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        x.Specialization.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+        
+            int totalRecords = doctors.Count;
+
+            var pagedDoctors = doctors
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+            ViewBag.Search = search;
+
+            return View(pagedDoctors);
         }
 
         // ===================== CREATE (GET) =====================
@@ -40,15 +66,14 @@ namespace Hospital_Management.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(DoctorModel model)
         {
-            // 🔹 OTHER specialization handling
+            //  Other specialization handling
             if (model.Specialization == "Other")
             {
                 if (string.IsNullOrWhiteSpace(model.OtherSpecialization))
                 {
                     ModelState.AddModelError(
                         nameof(model.OtherSpecialization),
-                        "Please enter specialization"
-                    );
+                        "Please enter specialization");
                 }
                 else
                 {
@@ -73,7 +98,15 @@ namespace Hospital_Management.Controllers
             if (doctor == null)
                 return NotFound();
 
-            doctor.SpecializationList = GetSpecializations();
+            var list = GetSpecializations();
+
+            if (!list.Any(x => x.Value == doctor.Specialization))
+            {
+                doctor.OtherSpecialization = doctor.Specialization;
+                doctor.Specialization = "Other";
+            }
+
+            doctor.SpecializationList = list;
             return View(doctor);
         }
 
@@ -82,15 +115,13 @@ namespace Hospital_Management.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(DoctorModel model)
         {
-            // 🔹 OTHER specialization handling
             if (model.Specialization == "Other")
             {
                 if (string.IsNullOrWhiteSpace(model.OtherSpecialization))
                 {
                     ModelState.AddModelError(
                         nameof(model.OtherSpecialization),
-                        "Please enter specialization"
-                    );
+                        "Please enter specialization");
                 }
                 else
                 {
@@ -123,7 +154,7 @@ namespace Hospital_Management.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ===================== SPECIALIZATION DROPDOWN =====================
+        // ===================== SPECIALIZATION LIST =====================
         private List<SelectListItem> GetSpecializations()
         {
             return new()

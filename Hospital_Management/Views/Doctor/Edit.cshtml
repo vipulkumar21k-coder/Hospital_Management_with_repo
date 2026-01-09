@@ -32,31 +32,27 @@
 <!-- ================= Other Specialization ================= -->
 <div class="form-group" id="otherSpecDiv" style="display:none;">
     <label>Other Specialization</label>
-    @Html.TextBoxFor(x => x.OtherSpecialization, new
-        {
-            @class = "form-control",
+    @Html.TextBoxFor(x => x.OtherSpecialization, new {
+        @class = "form-control",
         placeholder = "Enter specialization"
         })
-    @Html.ValidationMessageFor(
-        x => x.OtherSpecialization,
-        "",
-        new { @class = "text-danger" }
-        )
+    @Html.ValidationMessageFor(x => x.OtherSpecialization, "", new { @class = "text-danger" })
 </div>
 
 <div class="form-group">
     @Html.TextBoxFor(x => x.WorkPlace, new
         {
-            @class = "form-control",
+        @class = "form-control",
         placeholder = "Workplace"
         })
     @Html.ValidationMessageFor(x => x.WorkPlace, "", new { @class = "text-danger" })
 </div>
 
+<!-- ================= Experience ================= -->
 <div class="form-group">
     @Html.TextBoxFor(x => x.Experience, new
         {
-            @class = "form-control",
+        @class = "form-control",
         type = "number",
         id = "Experience",
         min = "0",
@@ -65,39 +61,46 @@
         placeholder = "Experience in years",
         onkeydown = "return !['e','E','+','-'].includes(event.key)"
         })
+
+    <!-- 🔴 Alert message yahin dikhega -->
     <span id="expError" class="text-danger"></span>
 </div>
 
 <input type="submit" value="Update" class="btn btn-success" />
 }
 
-
 @section Scripts {
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-        const specializationDropdown = document.getElementById("specializationDropdown");
-        const otherSpecDiv = document.getElementById("otherSpecDiv");
+            /* ===== Existing Specialization logic (NO CHANGE) ===== */
+            const dropdown = document.getElementById("specializationDropdown");
+            const otherDiv = document.getElementById("otherSpecDiv");
 
-        if (!specializationDropdown || !otherSpecDiv) {
-            console.error("Dropdown or div not found");
-            return;
-        }
-
-        function toggleOtherSpec() {
-            if (specializationDropdown.value === "Other") {
-                otherSpecDiv.style.display = "block";
-            } else {
-                otherSpecDiv.style.display = "none";
+            function toggleOther() {
+                if (dropdown.value === "Other") {
+                    otherDiv.style.display = "block";
+                } else {
+                    otherDiv.style.display = "none";
+                }
             }
-        }
 
-        specializationDropdown.addEventListener("change", toggleOtherSpec);
+            dropdown.addEventListener("change", toggleOther);
+            toggleOther(); // edit load ke liye
 
-        // 🔥 Edit ke liye page load pe bhi
-        toggleOtherSpec();
-    });
-</script>
+            /* ===== ONLY NEW FUNCTIONALITY (Experience Alert) ===== */
+            const expInput = document.getElementById("Experience");
+            const expError = document.getElementById("expError");
+
+            expInput.addEventListener("input", function () {
+                const value = parseInt(expInput.value);
+
+                if (!isNaN(value) && value > 70) {
+                    expError.innerText = "Experience can not be more then 70!";
+                } else {
+                    expError.innerText = "";
+                }
+            });
+        });
+    </script>
 }
-
-

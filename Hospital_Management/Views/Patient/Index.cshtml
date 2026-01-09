@@ -1,13 +1,9 @@
-﻿ 
-
-@*
+﻿@*
     For more information on enabling MVC for empty projects, visit
     https://go.microsoft.com/fwlink/?LinkID=397860
 *@
-@{
-}
-
 @model IEnumerable<Hospital_Management.Models.PatientModel>
+
 @if (TempData["DeleteError"] != null)
 {
     <script>
@@ -15,13 +11,31 @@
     </script>
 }
 
-
 <h2>Patient List</h2>
 
 <p>
     <a asp-action="Create" class="btn btn-primary">Add New Patient</a>
 </p>
 
+<!-- ================= SEARCH ================= -->
+<form method="get" class="mb-3">
+    <input type="text"
+           name="search"
+           value="@ViewBag.Search"
+           class="form-control"
+           placeholder="Search by name or contact"
+           style="width:250px; display:inline-block;" />
+
+    <button type="submit" class="btn btn-primary btn-sm">
+        Search
+    </button>
+    <div class="col-md-1">
+        <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+    </div>
+
+</form>
+
+<!-- ================= TABLE ================= -->
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -29,28 +43,61 @@
             <th>Age</th>
             <th>Gender</th>
             <th>Contact</th>
-            <th>Actions</th>
+            <th style="width:150px;">Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var p in Model)
+        @if (!Model.Any())
         {
             <tr>
-                <td>@p.PatientName</td>
-                <td>@p.Age</td>
-                <td>@p.Gender</td>
-                <td>@p.Contact</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@p.PatientId" class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@p.PatientId"
-                       class="btn btn-danger btn-sm"
-                       onclick="return confirm('Are you sure?');">
-                        Delete
-                    </a>
+                <td colspan="5" class="text-center text-danger">
+                    No patients found
                 </td>
             </tr>
         }
+        else
+        {
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.PatientName</td>
+                    <td>@p.Age</td>
+                    <td>@p.Gender</td>
+                    <td>@p.Contact</td>
+                    <td>
+                        <a asp-action="Edit"
+                           asp-route-id="@p.PatientId"
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@p.PatientId"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Are you sure?');">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
     </tbody>
 </table>
+
+<!-- ================= PAGINATION ================= -->
+@if (ViewBag.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.Page ? "active" : "")">
+                    <a class="page-link"
+                       href="?page=@i&search=@ViewBag.Search">
+                        @i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
